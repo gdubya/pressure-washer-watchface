@@ -1,0 +1,11 @@
+project.manifest = manifest.xml
+
+base.sourcePath = source
+base.resourcePath = resources
+round-240x240.resourcePath = $(round-240x240.resourcePath);resources-round-240x240
+round-260x260.resourcePath = $(round-260x260.resourcePath);resources-round-260x260
+round-280x280.resourcePath = $(round-280x280.resourcePath);resources-round-280x280
+round-360x360.resourcePath = $(round-360x360.resourcePath);resources-round-360x360
+round-390x390.resourcePath = $(round-390x390.resourcePath);resources-round-390x390
+round-416x416.resourcePath = $(round-416x416.resourcePath);resources-round-416x416
+round-454x454.resourcePath = $(round-454x454.resourcePath);resources-round-454x454
