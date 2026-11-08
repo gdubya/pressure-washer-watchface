@@ -43,3 +43,28 @@ function testGetBatteryColor(logger as Test.Logger) as Lang.Boolean {
     Test.assertEqual(0xFF0000, PowerWashView.getBatteryColor(10));
     return true;
 }
+
+(:test)
+function testResolveActiveThemeAndAccentColor(logger as Test.Logger) as Lang.Boolean {
+    Test.assertEqual(PowerWashView.THEME_POWER_WASHER, PowerWashView.resolveActiveTheme(PowerWashView.THEME_POWER_WASHER, 9));
+    Test.assertEqual(PowerWashView.THEME_LEAF_BLOWER, PowerWashView.resolveActiveTheme(PowerWashView.THEME_LEAF_BLOWER, 10));
+    Test.assertEqual(PowerWashView.THEME_WOK_MASTER, PowerWashView.resolveActiveTheme(PowerWashView.THEME_WOK_MASTER, 11));
+    Test.assertEqual(PowerWashView.THEME_HEDGE_TRIMMER, PowerWashView.resolveActiveTheme(PowerWashView.THEME_HEDGE_TRIMMER, 12));
+
+    Test.assertEqual(PowerWashView.THEME_POWER_WASHER, PowerWashView.resolveActiveTheme(PowerWashView.THEME_AUTO_ROTATE, 8));
+    Test.assertEqual(PowerWashView.THEME_LEAF_BLOWER, PowerWashView.resolveActiveTheme(PowerWashView.THEME_AUTO_ROTATE, 9));
+    Test.assertEqual(PowerWashView.THEME_WOK_MASTER, PowerWashView.resolveActiveTheme(PowerWashView.THEME_AUTO_ROTATE, 10));
+    Test.assertEqual(PowerWashView.THEME_HEDGE_TRIMMER, PowerWashView.resolveActiveTheme(PowerWashView.THEME_AUTO_ROTATE, 11));
+
+    Test.assertEqual(0x00AAFF, PowerWashView.getThemeAccentColor(PowerWashView.THEME_POWER_WASHER));
+    Test.assertEqual(0x00FF55, PowerWashView.getThemeAccentColor(PowerWashView.THEME_LEAF_BLOWER));
+    Test.assertEqual(0xFF5500, PowerWashView.getThemeAccentColor(PowerWashView.THEME_WOK_MASTER));
+    Test.assertEqual(0xAA55FF, PowerWashView.getThemeAccentColor(PowerWashView.THEME_HEDGE_TRIMMER));
+
+    Test.assertEqual(0x00FF55, PowerWashView.getBatteryColorForTheme(88, PowerWashView.THEME_LEAF_BLOWER));
+    Test.assertEqual(0xFF5500, PowerWashView.getBatteryColorForTheme(88, PowerWashView.THEME_WOK_MASTER));
+    Test.assertEqual(0xAA55FF, PowerWashView.getBatteryColorForTheme(88, PowerWashView.THEME_HEDGE_TRIMMER));
+    Test.assertEqual(0xFFAA00, PowerWashView.getBatteryColorForTheme(20, PowerWashView.THEME_HEDGE_TRIMMER));
+    Test.assertEqual(0xFF0000, PowerWashView.getBatteryColorForTheme(10, PowerWashView.THEME_HEDGE_TRIMMER));
+    return true;
+}

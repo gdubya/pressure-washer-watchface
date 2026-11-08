@@ -1,3 +1,9 @@
 <strings>
     <string id="AppName">PowerWash</string>
+    <string id="CharacterThemeTitle">Character &amp; Tool</string>
+    <string id="ThemePowerWasher">Power Washer (Cyan)</string>
+    <string id="ThemeLeafBlower">Leaf Blower (Green)</string>
+    <string id="ThemeWokMaster">Wok Master (Orange)</string>
+    <string id="ThemeHedgeTrimmer">Hedge Trimmer (Purple)</string>
+    <string id="ThemeAutoRotate">Auto-Rotate (Hourly)</string>
 </strings>

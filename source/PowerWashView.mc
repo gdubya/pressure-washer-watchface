@@ -11,13 +11,23 @@ using Toybox.WatchUi;
 
 class PowerWashView extends WatchUi.WatchFace {
 
-    private var _bgBitmap as WatchUi.BitmapResource?;
-    private var _isAwake as Lang.Boolean = true;
+    public static const THEME_POWER_WASHER = 0;
+    public static const THEME_LEAF_BLOWER = 1;
+    public static const THEME_WOK_MASTER = 2;
+    public static const THEME_HEDGE_TRIMMER = 3;
+    public static const THEME_AUTO_ROTATE = 4;
 
-    private static const COLOR_CYAN = 0x00AAFF;
+    public static const COLOR_CYAN = 0x00AAFF;
+    public static const COLOR_ELECTRIC_GREEN = 0x00FF55;
+    public static const COLOR_BLAZE_ORANGE = 0xFF5500;
+    public static const COLOR_ELECTRIC_PURPLE = 0xAA55FF;
     private static const COLOR_DARK_SLATE = 0x555555;
     private static const COLOR_HEART_RED = 0xFF0000;
     private static const COLOR_WARN_AMBER = 0xFFAA00;
+
+    private var _bgBitmap as WatchUi.BitmapResource?;
+    private var _loadedTheme as Lang.Number = -1;
+    private var _isAwake as Lang.Boolean = true;
 
     private static const DAYS_OF_WEEK = [
         "SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"
@@ -33,7 +43,9 @@ class PowerWashView extends WatchUi.WatchFace {
     }
 
     function onLayout(dc as Graphics.Dc) as Void {
-        _bgBitmap = WatchUi.loadResource(Rez.Drawables.BackgroundBitmap) as WatchUi.BitmapResource;
+        var clockTime = System.getClockTime();
+        var activeTheme = resolveActiveTheme(getConfiguredThemeSetting(), clockTime.hour);
+        ensureBackgroundLoaded(activeTheme);
     }
 
     function onShow() as Void {
@@ -42,6 +54,11 @@ class PowerWashView extends WatchUi.WatchFace {
     function onUpdate(dc as Graphics.Dc) as Void {
         var w = dc.getWidth();
         var h = dc.getHeight();
+
+        var clockTime = System.getClockTime();
+        var activeTheme = resolveActiveTheme(getConfiguredThemeSetting(), clockTime.hour);
+        var accentColor = getThemeAccentColor(activeTheme);
+        ensureBackgroundLoaded(activeTheme);
 
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
@@ -54,19 +71,19 @@ class PowerWashView extends WatchUi.WatchFace {
         }
 
         // 2. Draw Tactical Perimeter Tick Ring
-        drawPerimeterTicks(dc, w, h);
+        drawPerimeterTicks(dc, w, h, accentColor);
 
         // 3. Draw Upper-Right Digital Clock & Date HUD
-        drawTimeAndDateHud(dc, w, h);
+        drawTimeAndDateHud(dc, w, h, clockTime, accentColor);
 
         // 4. Draw Upper-Left Battery HUD
-        drawBatteryHud(dc, w, h);
+        drawBatteryHud(dc, w, h, activeTheme);
 
         // 5. Draw Middle-Right Heart Rate HUD
-        drawHeartRateHud(dc, w, h);
+        drawHeartRateHud(dc, w, h, accentColor);
 
         // 6. Draw Bottom-Center Steps Badge
-        drawStepsHud(dc, w, h);
+        drawStepsHud(dc, w, h, accentColor);
     }
 
     function onHide() as Void {
@@ -82,7 +99,25 @@ class PowerWashView extends WatchUi.WatchFace {
         WatchUi.requestUpdate();
     }
 
-    private function drawPerimeterTicks(dc as Graphics.Dc, w as Lang.Number, h as Lang.Number) as Void {
+    private function ensureBackgroundLoaded(activeTheme as Lang.Number) as Void {
+        if (_bgBitmap != null && _loadedTheme == activeTheme) {
+            return;
+        }
+        // Release previous bitmap before loading the new one to conserve WatchFace RAM
+        _bgBitmap = null;
+        if (activeTheme == THEME_LEAF_BLOWER) {
+            _bgBitmap = WatchUi.loadResource(Rez.Drawables.LeafBlowerBitmap) as WatchUi.BitmapResource;
+        } else if (activeTheme == THEME_WOK_MASTER) {
+            _bgBitmap = WatchUi.loadResource(Rez.Drawables.WokBitmap) as WatchUi.BitmapResource;
+        } else if (activeTheme == THEME_HEDGE_TRIMMER) {
+            _bgBitmap = WatchUi.loadResource(Rez.Drawables.HedgeTrimmerBitmap) as WatchUi.BitmapResource;
+        } else {
+            _bgBitmap = WatchUi.loadResource(Rez.Drawables.BackgroundBitmap) as WatchUi.BitmapResource;
+        }
+        _loadedTheme = activeTheme;
+    }
+
+    private function drawPerimeterTicks(dc as Graphics.Dc, w as Lang.Number, h as Lang.Number, accentColor as Lang.Number) as Void {
         var cx = w / 2.0;
         var cy = h / 2.0;
         var outerR = (w < h ? w : h) / 2.0 - 2.0;
@@ -106,7 +141,7 @@ class PowerWashView extends WatchUi.WatchFace {
 
             if (isCardinal) {
                 dc.setPenWidth(2);
-                dc.setColor(COLOR_CYAN, Graphics.COLOR_TRANSPARENT);
+                dc.setColor(accentColor, Graphics.COLOR_TRANSPARENT);
             } else if (isMajor) {
                 dc.setPenWidth(2);
                 dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
@@ -119,8 +154,7 @@ class PowerWashView extends WatchUi.WatchFace {
         dc.setPenWidth(1);
     }
 
-    private function drawTimeAndDateHud(dc as Graphics.Dc, w as Lang.Number, h as Lang.Number) as Void {
-        var clockTime = System.getClockTime();
+    private function drawTimeAndDateHud(dc as Graphics.Dc, w as Lang.Number, h as Lang.Number, clockTime as System.ClockTime, accentColor as Lang.Number) as Void {
         var is24Hour = System.getDeviceSettings().is24Hour;
         var hourStr = formatHourString(clockTime.hour, is24Hour);
         var minStr = clockTime.min.format("%02d");
@@ -170,22 +204,22 @@ class PowerWashView extends WatchUi.WatchFace {
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.fillRoundedRectangle(boxX, boxY, boxW, boxH, 6);
 
-        // Draw "HH:" in White and "MM" in Cyan
+        // Draw "HH:" in White and "MM" in Theme Accent Color
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         dc.drawText(startX, timeY, timeFont, hourColonStr, Graphics.TEXT_JUSTIFY_LEFT);
-        dc.setColor(COLOR_CYAN, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(accentColor, Graphics.COLOR_TRANSPARENT);
         dc.drawText(startX + wHourColon, timeY, timeFont, minStr, Graphics.TEXT_JUSTIFY_LEFT);
 
-        // Draw Date: "DOW " (White) + "DD" (Cyan) + " MON" (White)
+        // Draw Date: "DOW " (White) + "DD" (Accent) + " MON" (White)
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         dc.drawText(dateStartX, dateY, dateFont, dowStr, Graphics.TEXT_JUSTIFY_LEFT);
-        dc.setColor(COLOR_CYAN, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(accentColor, Graphics.COLOR_TRANSPARENT);
         dc.drawText(dateStartX + wDow, dateY, dateFont, dayNumStr, Graphics.TEXT_JUSTIFY_LEFT);
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         dc.drawText(dateStartX + wDow + wDay, dateY, dateFont, monStr, Graphics.TEXT_JUSTIFY_LEFT);
     }
 
-    private function drawBatteryHud(dc as Graphics.Dc, w as Lang.Number, h as Lang.Number) as Void {
+    private function drawBatteryHud(dc as Graphics.Dc, w as Lang.Number, h as Lang.Number, activeTheme as Lang.Number) as Void {
         var stats = System.getSystemStats();
         var batt = (stats.battery + 0.5).toNumber();
         if (batt > 100) {
@@ -226,7 +260,7 @@ class PowerWashView extends WatchUi.WatchFace {
         if (fillW < 1 && batt > 0) {
             fillW = 1;
         }
-        var fillColor = getBatteryColor(batt);
+        var fillColor = getBatteryColorForTheme(batt, activeTheme);
         dc.setColor(fillColor, Graphics.COLOR_TRANSPARENT);
         if (fillW > 0) {
             dc.fillRectangle(bx + 2, by + 2, fillW, iconH - 4);
@@ -237,7 +271,7 @@ class PowerWashView extends WatchUi.WatchFace {
         dc.drawText(cx, cy + 1, font, battStr, Graphics.TEXT_JUSTIFY_CENTER);
     }
 
-    private function drawHeartRateHud(dc as Graphics.Dc, w as Lang.Number, h as Lang.Number) as Void {
+    private function drawHeartRateHud(dc as Graphics.Dc, w as Lang.Number, h as Lang.Number, accentColor as Lang.Number) as Void {
         var hr = getCurrentHeartRate();
         var hrStr = (hr != null && hr > 0) ? hr.toString() : "--";
 
@@ -259,7 +293,7 @@ class PowerWashView extends WatchUi.WatchFace {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         dc.drawText(textCenterX, cy - (valH / 2) - 2, valFont, hrStr, Graphics.TEXT_JUSTIFY_CENTER);
 
-        dc.setColor(COLOR_CYAN, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(accentColor, Graphics.COLOR_TRANSPARENT);
         dc.drawText(textCenterX, cy + (valH / 2) - 5, lblFont, "BPM", Graphics.TEXT_JUSTIFY_CENTER);
 
         // Draw crisp vector heart icon on the right
@@ -278,7 +312,7 @@ class PowerWashView extends WatchUi.WatchFace {
         ]);
     }
 
-    private function drawStepsHud(dc as Graphics.Dc, w as Lang.Number, h as Lang.Number) as Void {
+    private function drawStepsHud(dc as Graphics.Dc, w as Lang.Number, h as Lang.Number, accentColor as Lang.Number) as Void {
         var info = ActivityMonitor.getInfo();
         var steps = (info != null && info.steps != null) ? (info.steps as Lang.Number) : 0;
         var stepsStr = formatStepsWithCommas(steps);
@@ -297,17 +331,17 @@ class PowerWashView extends WatchUi.WatchFace {
         var pillX = cx - (pillW / 2);
         var pillY = cy - (pillH / 2);
 
-        // Dark tactical badge with cyan outline so steps stand out over the leather jacket
+        // Dark tactical badge with theme accent outline so steps stand out over the leather jacket
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.fillRoundedRectangle(pillX, pillY, pillW, pillH, pillH / 2);
-        dc.setColor(COLOR_CYAN, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(accentColor, Graphics.COLOR_TRANSPARENT);
         dc.drawRoundedRectangle(pillX, pillY, pillW, pillH, pillH / 2);
 
-        // Draw cyan sneaker/step icon
+        // Draw sneaker/step icon in theme accent color
         var startX = cx - (totalW / 2);
         var shoeX = startX + (iconSpace / 2) - 2;
         var shoeY = cy;
-        dc.setColor(COLOR_CYAN, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(accentColor, Graphics.COLOR_TRANSPARENT);
         dc.fillPolygon([
             [shoeX - 5, shoeY - 4],
             [shoeX - 1, shoeY - 4],
@@ -339,7 +373,64 @@ class PowerWashView extends WatchUi.WatchFace {
         return null;
     }
 
-    // Pure formatting helpers (also used by unit tests)
+    public static function getConfiguredThemeSetting() as Lang.Number {
+        try {
+            if (Application has :Properties) {
+                var val = Application.Properties.getValue("CharacterTheme");
+                if (val instanceof Lang.Number) {
+                    return val as Lang.Number;
+                }
+            }
+        } catch (ex) {
+            // Default to Hedge Trimmer if property lookup fails
+        }
+        return THEME_HEDGE_TRIMMER;
+    }
+
+    public static function setConfiguredThemeSetting(theme as Lang.Number) as Void {
+        try {
+            if (Application has :Properties) {
+                Application.Properties.setValue("CharacterTheme", theme);
+            }
+        } catch (ex) {
+        }
+    }
+
+    // Pure formatting and theme helpers (also used by unit tests)
+    public static function resolveActiveTheme(themeSetting as Lang.Number, hour as Lang.Number) as Lang.Number {
+        if (themeSetting == THEME_POWER_WASHER) {
+            return THEME_POWER_WASHER;
+        }
+        if (themeSetting == THEME_LEAF_BLOWER) {
+            return THEME_LEAF_BLOWER;
+        }
+        if (themeSetting == THEME_WOK_MASTER) {
+            return THEME_WOK_MASTER;
+        }
+        if (themeSetting == THEME_HEDGE_TRIMMER) {
+            return THEME_HEDGE_TRIMMER;
+        }
+        // THEME_AUTO_ROTATE (4): rotates across all 4 characters hourly
+        var slot = hour % 4;
+        if (slot < 0) {
+            slot = 0;
+        }
+        return slot;
+    }
+
+    public static function getThemeAccentColor(activeTheme as Lang.Number) as Lang.Number {
+        if (activeTheme == THEME_LEAF_BLOWER) {
+            return COLOR_ELECTRIC_GREEN;
+        }
+        if (activeTheme == THEME_WOK_MASTER) {
+            return COLOR_BLAZE_ORANGE;
+        }
+        if (activeTheme == THEME_HEDGE_TRIMMER) {
+            return COLOR_ELECTRIC_PURPLE;
+        }
+        return COLOR_CYAN;
+    }
+
     public static function formatHourString(hour as Lang.Number, is24Hour as Lang.Boolean) as Lang.String {
         var displayHour = hour;
         if (!is24Hour) {
@@ -374,11 +465,15 @@ class PowerWashView extends WatchUi.WatchFace {
     }
 
     public static function getBatteryColor(batteryPct as Lang.Number) as Lang.Number {
+        return getBatteryColorForTheme(batteryPct, THEME_POWER_WASHER);
+    }
+
+    public static function getBatteryColorForTheme(batteryPct as Lang.Number, activeTheme as Lang.Number) as Lang.Number {
         if (batteryPct < 15) {
             return COLOR_HEART_RED;
         } else if (batteryPct < 30) {
             return COLOR_WARN_AMBER;
         }
-        return COLOR_CYAN;
+        return getThemeAccentColor(activeTheme);
     }
 }

@@ -14,7 +14,15 @@ class PowerWashApp extends Application.AppBase {
     function onStop(state as Lang.Dictionary?) as Void {
     }
 
+    function onSettingsChanged() as Void {
+        WatchUi.requestUpdate();
+    }
+
     function getInitialView() as [WatchUi.Views] or [WatchUi.Views, WatchUi.InputDelegates] {
         return [ new PowerWashView() ];
+    }
+
+    function getSettingsView() as [WatchUi.Views] or [WatchUi.Views, WatchUi.InputDelegates] or Null {
+        return [ new PowerWashSettingsMenu(), new PowerWashSettingsDelegate() ];
     }
 }
