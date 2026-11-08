@@ -1,6 +1,10 @@
 # PowerWash — Garmin Connect IQ Watch Face
 
 <p align="center">
+  <img src="assets/store/hero_all_4_characters.jpg" width="800" alt="PowerWash 4-Character Action Hero Banner" />
+</p>
+
+<p align="center">
   <img src="assets/store/watch_face_preview.jpg" width="195" alt="PowerWash Garmin Watch Face Preview (Power Washer)" />
   <img src="assets/store/watch_face_leafblower_preview.jpg" width="195" alt="PowerWash Garmin Watch Face Preview (Leaf Blower)" />
   <img src="assets/store/watch_face_wok_preview.jpg" width="195" alt="PowerWash Garmin Watch Face Preview (Wok Master)" />
