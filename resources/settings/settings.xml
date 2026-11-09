@@ -1,0 +1,11 @@
+<settings>
+    <setting propertyKey="@Properties.CharacterTheme" title="@Strings.CharacterThemeTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.ThemePowerWasher</listEntry>
+            <listEntry value="1">@Strings.ThemeLeafBlower</listEntry>
+            <listEntry value="2">@Strings.ThemeWokMaster</listEntry>
+            <listEntry value="3">@Strings.ThemeHedgeTrimmer</listEntry>
+            <listEntry value="4">@Strings.ThemeAutoRotate</listEntry>
+        </settingConfig>
+    </setting>
+</settings>

@@ -1,0 +1,6 @@
+<drawables>
+    <bitmap id="BackgroundBitmap" filename="background.png" dithering="floyd_steinberg" />
+    <bitmap id="LeafBlowerBitmap" filename="background_leafblower.png" dithering="floyd_steinberg" />
+    <bitmap id="WokBitmap" filename="background_wok.png" dithering="floyd_steinberg" />
+    <bitmap id="HedgeTrimmerBitmap" filename="background_hedgetrimmer.png" dithering="floyd_steinberg" />
+</drawables>
